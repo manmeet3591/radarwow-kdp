@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "radarwow-kdp"
+version = "0.1.0"
+description = "radar-wow stage 3: PHIDP processing and KDP - Vulpiani 2012, Giangrande 2013 linear programming, moving regression"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+dependencies = ["radarwow-core", "numpy", "scipy", "xarray"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = true
