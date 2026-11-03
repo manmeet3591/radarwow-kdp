@@ -226,11 +226,13 @@ plt.show()
 #   Without `open_volume` + `diagnose` + `prepare`, all three methods give nonsense on two of three radars.
 # - **Phase closure on real data:** LP is best on every band (median error 3-9°), at 10-60× the runtime.
 #   Vulpiani and moving regression close to 5-17°; C band (CSAPR2, hail) is hardest for all three.
-# - **Rain gates must form runs of at least 2 km:** isolated noise gates far from the storm pass the rhoHV
-#   test by chance and create fake PHIDP rises when PHIDP is bridged out to them.
+# - **Which gates count as rain matters as much as the method.** Two rules came out of this data:
+#   rain gates must form runs of at least 2 km, and have SNR >= 10 dB. Without them, weak echo and noise
+#   behind storms pass the rhoHV test by chance (NEXRAD rhoHV is unreliable at low SNR) and create fake
+#   PHIDP rises of tens to hundreds of degrees.
 # - **Synthetic truth:** moving regression has the lowest RMSE but goes strongly negative behind δ bumps;
 #   LP never goes negative.
-# - **Independent implementation:** our Vulpiani vs Py-ART `kdp_vulpiani` on KTLX gives r = 0.80 (0.70
-#   before the 2 km rain-run rule). A small branch where ours is higher remains: gates the two codes mask
-#   and gap-fill differently. Still open.
+# - **Independent implementation:** our Vulpiani vs Py-ART `kdp_vulpiani` on KTLX gives r = 0.86 (0.70
+#   before the two rain-gate rules). The remaining scatter comes from gates the two codes mask and gap-fill
+#   differently.
 # - Validate with **phase closure** and independent implementations, not with another chain's product.
