@@ -18,11 +18,30 @@ from radarwow.core.moments import phidp_direction
 from radarwow.core.noise import signal_mask
 
 
-def rain_mask(ds, rhohv_min: float) -> np.ndarray:
+def keep_runs(mask: np.ndarray, min_run: int) -> np.ndarray:
+    """Keep only runs of at least ``min_run`` consecutive True gates along each ray."""
+    if min_run <= 1:
+        return mask
+    out = np.zeros_like(mask)
+    for i in range(mask.shape[0]):
+        m = np.concatenate(([False], mask[i], [False]))
+        edges = np.flatnonzero(np.diff(m.astype(np.int8)))
+        for s, e in zip(edges[::2], edges[1::2]):
+            if e - s >= min_run:
+                out[i, s:e] = True
+    return out
+
+
+def rain_mask(ds, rhohv_min: float, min_run_km: float = 2.0) -> np.ndarray:
+    """Signal, finite PHIDP, rhoHV above threshold, in runs of at least ``min_run_km``.
+
+    The run length matters: noise gates far from the storm pass a rhoHV test by chance, and
+    bridging PHIDP out to them creates fake PHIDP rises (seen on ARM CSAPR2 and NEXRAD KTLX).
+    """
     m = signal_mask(ds) & np.isfinite(ds["PHIDP"].values)
     if "RHOHV" in ds:
         m &= ds["RHOHV"].values > rhohv_min
-    return m
+    return keep_runs(m, max(1, int(round(min_run_km / gate_km(ds)))))
 
 
 def prepare_ray(phi: np.ndarray, valid: np.ndarray, n_offset: int = 10):

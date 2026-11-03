@@ -223,11 +223,13 @@ plt.show()
 # - **Source problems first:** S (NEXRAD) stores PHIDP 0-360° with folding; C (CSAPR2) stores it with
 #   the *opposite sign* and a ~200° offset; X (X-SAPR) keeps KDP in a variable named `diff_phase`.
 #   Without `open_volume` + `diagnose` + `prepare`, all three methods give nonsense on two of three radars.
-# - **Phase closure on real data:** LP is best on every band (median error 4-9°), at 15-30× the runtime.
-#   Vulpiani and moving regression close to ~12-14° (moving regression ~6° at X band).
+# - **Phase closure on real data:** LP is best on every band (median error 3-9°), at 10-60× the runtime.
+#   Vulpiani and moving regression close to 5-17°; C band (CSAPR2, hail) is hardest for all three.
+# - **Rain gates must form runs of at least 2 km:** isolated noise gates far from the storm pass the rhoHV
+#   test by chance and create fake PHIDP rises when PHIDP is bridged out to them.
 # - **Synthetic truth:** moving regression has the lowest RMSE but goes strongly negative behind δ bumps;
 #   LP never goes negative.
-# - **Independent implementation:** our Vulpiani vs Py-ART `kdp_vulpiani` on KTLX gives r = 0.70. The
-#   off-diagonal branch (ours higher) comes from gates where the two codes mask and interpolate
-#   differently; that difference is open and tracked in the repo issues.
+# - **Independent implementation:** our Vulpiani vs Py-ART `kdp_vulpiani` on KTLX gives r = 0.80 (0.70
+#   before the 2 km rain-run rule). A small branch where ours is higher remains: gates the two codes mask
+#   and gap-fill differently. Still open.
 # - Validate with **phase closure** and independent implementations, not with another chain's product.
