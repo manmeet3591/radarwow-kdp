@@ -15,7 +15,8 @@ def ray_sweep(n_rays=6, **kw):
     kdp = np.stack([x[3] for x in rays])
     ds = xr.Dataset({"PHIDP": (("azimuth", "range"), psi),
                      "DBZH": (("azimuth", "range"), np.full(psi.shape, 30.0)),
-                     "RHOHV": (("azimuth", "range"), np.full(psi.shape, 0.99))},
+                     "RHOHV": (("azimuth", "range"), np.full(psi.shape, 0.99)),
+                     "SNRH": (("azimuth", "range"), np.full(psi.shape, 30.0))},
                     coords={"azimuth": np.arange(n_rays, dtype=float), "range": r_km * 1e3 + 125.0})
     return ds, kdp
 

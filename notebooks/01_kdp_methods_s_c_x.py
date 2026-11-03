@@ -57,7 +57,8 @@ def ray_dataset(n_rays=12, **kw):
     psi = np.stack([r[1] for r in rays])
     ds = xr.Dataset({"PHIDP": (("azimuth", "range"), psi),
                      "DBZH": (("azimuth", "range"), np.full(psi.shape, 35.0)),
-                     "RHOHV": (("azimuth", "range"), np.full(psi.shape, 0.99))},
+                     "RHOHV": (("azimuth", "range"), np.full(psi.shape, 0.99)),
+                     "SNRH": (("azimuth", "range"), np.full(psi.shape, 30.0))},
                     coords={"azimuth": np.arange(n_rays, dtype=float), "range": rays[0][0] * 1e3 + 125.0})
     return ds, np.stack([r[3] for r in rays]), rays[0][0]
 

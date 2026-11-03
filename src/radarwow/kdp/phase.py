@@ -15,7 +15,7 @@ import numpy as np
 from scipy.ndimage import median_filter
 
 from radarwow.core.moments import phidp_direction
-from radarwow.core.noise import signal_mask
+from radarwow.core.noise import signal_mask, snr_estimate
 
 
 def keep_runs(mask: np.ndarray, min_run: int) -> np.ndarray:
@@ -32,13 +32,16 @@ def keep_runs(mask: np.ndarray, min_run: int) -> np.ndarray:
     return out
 
 
-def rain_mask(ds, rhohv_min: float, min_run_km: float = 2.0) -> np.ndarray:
-    """Signal, finite PHIDP, rhoHV above threshold, in runs of at least ``min_run_km``.
+def rain_mask(ds, rhohv_min: float, min_run_km: float = 2.0, snr_min_db: float = 10.0) -> np.ndarray:
+    """Signal, SNR >= ``snr_min_db``, finite PHIDP, rhoHV above threshold, in runs of at least ``min_run_km``.
+
+    The SNR test matters because rhoHV itself is unreliable at low SNR (NEXRAD KTLX: 15 % of signal
+    gates have rhoHV > 1.02): weak echo behind a storm can pass the rhoHV test with random PHIDP.
 
     The run length matters: noise gates far from the storm pass a rhoHV test by chance, and
     bridging PHIDP out to them creates fake PHIDP rises (seen on ARM CSAPR2 and NEXRAD KTLX).
     """
-    m = signal_mask(ds) & np.isfinite(ds["PHIDP"].values)
+    m = signal_mask(ds) & np.isfinite(ds["PHIDP"].values) & (snr_estimate(ds) >= snr_min_db)
     if "RHOHV" in ds:
         m &= ds["RHOHV"].values > rhohv_min
     return keep_runs(m, max(1, int(round(min_run_km / gate_km(ds)))))
