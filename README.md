@@ -2,7 +2,7 @@
 
 **radar-wow stage 3: PHIDP processing and KDP.** Unfolding, sign convention, system offset, KDP estimation.
 
-Part of [radar-wow](https://github.com/radar-wow), a set of repos that together build a radar QPE system that works for S, C and X band radars.
+Part of [radar-wow](https://github.com/manmeet3591/radar-wow), a set of repos that together build a radar QPE system that works for S, C and X band radars.
 Every algorithm is one class implementing one paper, with the same interface: it takes an xradar sweep or volume with canonical moment names, declares the bands and moments it needs, and records provenance.
 
 ## Sub-components
@@ -17,12 +17,12 @@ Every algorithm is one class implementing one paper, with the same interface: it
 ## Install
 
 ```bash
-pip install git+https://github.com/radar-wow/radarwow-core git+https://github.com/radar-wow/radarwow-kdp
+pip install git+https://github.com/manmeet3591/radarwow-core git+https://github.com/manmeet3591/radarwow-kdp
 ```
 
 ## Notebooks (free data, S / C / X band)
 
-- [`notebooks/01_kdp_methods_s_c_x.ipynb`](notebooks/01_kdp_methods_s_c_x.ipynb): open in Colab via `https://colab.research.google.com/github/radar-wow/radarwow-kdp/blob/main/notebooks/01_kdp_methods_s_c_x.ipynb`
+- [`notebooks/01_kdp_methods_s_c_x.ipynb`](notebooks/01_kdp_methods_s_c_x.ipynb): open in Colab via `https://colab.research.google.com/github/manmeet3591/radarwow-kdp/blob/main/notebooks/01_kdp_methods_s_c_x.ipynb`
 
 ## Results
 
