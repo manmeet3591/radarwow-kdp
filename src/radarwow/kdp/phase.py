@@ -35,7 +35,7 @@ def keep_runs(mask: np.ndarray, min_run: int) -> np.ndarray:
     return out
 
 
-def rain_mask(ds, rhohv_min: float, min_run_km: float = 2.0, snr_min_db: float = 10.0) -> np.ndarray:
+def rain_mask(ds, rhohv_min: float, min_run_km: float = 2.0, snr_min_db: float = 10.0, max_clutter_db: float = 10.0) -> np.ndarray:
     """Signal, SNR >= ``snr_min_db``, finite PHIDP, rhoHV above threshold, in runs of at least ``min_run_km``.
 
     The SNR test matters because rhoHV itself is unreliable at low SNR (NEXRAD KTLX: 15 % of signal
@@ -43,8 +43,16 @@ def rain_mask(ds, rhohv_min: float, min_run_km: float = 2.0, snr_min_db: float =
 
     The run length matters: noise gates far from the storm pass a rhoHV test by chance, and
     bridging PHIDP out to them creates fake PHIDP rises (seen on ARM CSAPR2 and NEXRAD KTLX).
+
+    Clutter: when the file has both total (DBTH) and clutter-filtered (DBZH) reflectivity, gates where the signal
+    processor removed more than ``max_clutter_db`` are excluded, because the processor filters reflectivity but not
+    the phase. A precaution: on the Tablazo (Colombia) mountain-top radar it changed little (radar/gauge bias 2.16 ->
+    2.09); the spurious PHIDP there was caught by the ray consistency test in radarwow-attenuation instead.
     """
     m = signal_mask(ds) & np.isfinite(ds["PHIDP"].values) & (snr_estimate(ds) >= snr_min_db)
+    if "DBTH" in ds:  # phase is not clutter-filtered: where the processor removed > max_clutter_db, PHIDP is unreliable
+        removed = ds["DBTH"].values - ds["DBZH"].values
+        m &= ~(np.isfinite(removed) & (removed > max_clutter_db))
     if "RHOHV" in ds:
         m &= ds["RHOHV"].values > rhohv_min
     return keep_runs(m, max(1, int(round(min_run_km / gate_km(ds)))))
