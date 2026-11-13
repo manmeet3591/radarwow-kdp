@@ -2,6 +2,9 @@
 
 Measured PHIDP differs by source: 0-360 or +-180 storage, system offsets from 0 to ~200 deg,
 folding, noise gates and non-rain echo. Before differentiation we
+0. rotate the sweep by the circular mean of its rain-gate PHIDP and wrap to +-180 deg, so a system offset near the
+   0/360 boundary does not fold every ray (FMI Petajavesi stores ~356 deg; without this the median-based unfolding
+   below left 356 deg jumps that ZPHI and R(A) read as heavy rain),
 1. keep gates that are signal and look like rain (rhoHV above the band threshold),
 2. unfold each ray (np.unwrap on the valid sequence, after a 5-gate median),
 3. flip the sign if the source stores PHIDP decreasing with range (core.moments.phidp_direction),
@@ -63,10 +66,20 @@ def prepare_ray(phi: np.ndarray, valid: np.ndarray, n_offset: int = 10):
     return psi, valid, offset
 
 
+def center_phidp(phi: np.ndarray, valid: np.ndarray) -> np.ndarray:
+    """PHIDP rotated by the circular mean of the valid gates and wrapped to [-180, 180)."""
+    v = phi[valid & np.isfinite(phi)]
+    if v.size == 0:
+        return phi
+    c = np.rad2deg(np.angle(np.mean(np.exp(1j * np.deg2rad(v)))))
+    return (phi - c + 180.0) % 360.0 - 180.0
+
+
 def prepare(ds, rhohv_min: float):
+    valid = rain_mask(ds, rhohv_min)
+    ds = ds.assign(PHIDP=ds["PHIDP"].copy(data=center_phidp(ds["PHIDP"].values.astype(float), valid)))
     sign, _ = phidp_direction(ds)
     phi = sign * ds["PHIDP"].values.astype(float)
-    valid = rain_mask(ds, rhohv_min)
     psi = np.full(phi.shape, np.nan)
     offsets = np.full(phi.shape[0], np.nan)
     for i in range(phi.shape[0]):

@@ -44,3 +44,14 @@ def test_lp_never_negative():
     ds, truth = ray_sweep(centers=(40.0,), widths=(6.0,), peaks=(3.0,), noise=4.0, delta_peak=15.0)
     out = Giangrande2013LP()(ds, band="C")
     assert np.nanmin(out["KDP"].values) > -0.05
+
+
+@pytest.mark.parametrize("cls", METHODS)
+def test_offset_near_360_does_not_create_phase_rise(cls):
+    # FMI Petajavesi: system offset ~356 deg stored 0-360, so noise folds every ray around 0/360
+    ds, truth = ray_sweep(n_rays=12, offset=356.0, centers=(40.0,), widths=(6.0,), peaks=(2.0,), noise=3.0)
+    ds["PHIDP"] = ds["PHIDP"] % 360.0
+    out = cls()(ds, band="C")
+    span_true = np.sum(truth, axis=1) * 0.25 * 2
+    span = np.nansum(out["KDP"].values, axis=1) * 0.25 * 2
+    assert np.allclose(span, span_true, rtol=0.2), (span, span_true)
